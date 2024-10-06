@@ -7,7 +7,9 @@ from langchain.memory import ConversationBufferMemory
 from langchain_community.chat_message_histories import StreamlitChatMessageHistory
 from langchain.callbacks.base import BaseCallbackHandler
 from langchain.chains import ConversationalRetrievalChain
-from langchain_community.vectorstores import DocArrayInMemorySearch
+from langchain_community.vectorstores import Chroma
+
+
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 
 from ollama_llm import get_chat_model, get_embedding_model
@@ -33,11 +35,12 @@ def configure_retriever(uploaded_files):
     splits = text_splitter.split_documents(docs)
 
     # Create embeddings and store in vectordb
-    embeddings = get_embedding_model()
-    vectordb = DocArrayInMemorySearch.from_documents(splits, embeddings)
+    embeddings_model = get_embedding_model()
+    vectordb = Chroma.from_documents(splits, embeddings_model)
+    vectordb.persist()
 
     # Define retriever
-    retriever = vectordb.as_retriever(search_type="mmr", search_kwargs={"k": 2, "fetch_k": 4})
+    retriever = vectordb.as_retriever(search_type="mmr", search_kwargs={"k": 2, "fetch_k": 4} )
 
     return retriever
 

@@ -26,6 +26,7 @@ langchain-openai = "^0.0.2.post1"
 numexpr = "^2.8.8"
 langchainhub = "^0.1.14"
 ollama =">=0.3.2"
+chromadb = ">=0.5.11"
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.3.0"
