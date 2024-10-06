@@ -1,8 +1,11 @@
 from langchain.callbacks.base import BaseCallbackHandler
-from langchain.schema import ChatMessage
-from langchain_openai import ChatOpenAI
 import streamlit as st
-
+from langchain_community.chat_models import ChatOllama
+from ollama_llm import model_name, get_chat_model
+from langchain_core.messages import (
+    AIMessage,
+    HumanMessage,
+)
 
 class StreamHandler(BaseCallbackHandler):
     def __init__(self, container, initial_text=""):
@@ -14,25 +17,20 @@ class StreamHandler(BaseCallbackHandler):
         self.container.markdown(self.text)
 
 
-with st.sidebar:
-    openai_api_key = st.text_input("OpenAI API Key", type="password")
-
 if "messages" not in st.session_state:
-    st.session_state["messages"] = [ChatMessage(role="assistant", content="How can I help you?")]
+    st.session_state["messages"] = [AIMessage(content="How can I help you?")]
 
 for msg in st.session_state.messages:
-    st.chat_message(msg.role).write(msg.content)
+    st.chat_message(msg.type).write(msg.content)
 
 if prompt := st.chat_input():
-    st.session_state.messages.append(ChatMessage(role="user", content=prompt))
+    st.session_state.messages.append(HumanMessage(content=prompt))
     st.chat_message("user").write(prompt)
-
-    if not openai_api_key:
-        st.info("Please add your OpenAI API key to continue.")
-        st.stop()
 
     with st.chat_message("assistant"):
         stream_handler = StreamHandler(st.empty())
-        llm = ChatOpenAI(openai_api_key=openai_api_key, streaming=True, callbacks=[stream_handler])
+
+        # llm = ChatOllama(model=model_name, streaming=True, callbacks=[stream_handler])
+        llm = get_chat_model(callbacks=[stream_handler])
         response = llm.invoke(st.session_state.messages)
-        st.session_state.messages.append(ChatMessage(role="assistant", content=response.content))
+        st.session_state.messages.append(AIMessage(content=response.content))

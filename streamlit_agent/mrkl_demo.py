@@ -9,9 +9,11 @@ from langchain_community.callbacks import StreamlitCallbackHandler
 from langchain_community.utilities import DuckDuckGoSearchAPIWrapper, SQLDatabase
 from langchain_core.runnables import RunnableConfig
 from langchain_experimental.sql import SQLDatabaseChain
-from langchain_openai import OpenAI
+
 from sqlalchemy import create_engine
 import sqlite3
+
+from ollama_llm import get_llm
 
 from streamlit_agent.callbacks.capturing_callback_handler import playback_callbacks
 from streamlit_agent.clear_results import with_clear_container
@@ -32,19 +34,22 @@ st.set_page_config(
 "# 🦜🔗 MRKL"
 
 # Setup credentials in Streamlit
-user_openai_api_key = st.sidebar.text_input(
-    "OpenAI API Key", type="password", help="Set this to run your own custom questions."
-)
+# user_openai_api_key = st.sidebar.text_input(
+#     "OpenAI API Key", type="password", help="Set this to run your own custom questions."
+# )
 
-if user_openai_api_key:
-    openai_api_key = user_openai_api_key
-    enable_custom = True
-else:
-    openai_api_key = "not_supplied"
-    enable_custom = False
+# if user_openai_api_key:
+#     openai_api_key = user_openai_api_key
+#     enable_custom = True
+# else:
+#     openai_api_key = "not_supplied"
+#     enable_custom = False
+
+enable_custom = False
 
 # Tools setup
-llm = OpenAI(temperature=0, openai_api_key=openai_api_key, streaming=True)
+# llm = OpenAI(temperature=0, openai_api_key=openai_api_key, streaming=True)
+llm = get_llm()
 search = DuckDuckGoSearchAPIWrapper()
 llm_math_chain = LLMMathChain.from_llm(llm)
 

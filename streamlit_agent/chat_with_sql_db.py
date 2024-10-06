@@ -1,12 +1,12 @@
 import streamlit as st
 from pathlib import Path
-from langchain.llms.openai import OpenAI
 from langchain.agents import create_sql_agent
 from langchain.sql_database import SQLDatabase
 from langchain.agents.agent_types import AgentType
-from langchain.callbacks import StreamlitCallbackHandler
-from langchain.agents.agent_toolkits import SQLDatabaseToolkit
+from langchain_community.callbacks import StreamlitCallbackHandler
+from langchain_community.agent_toolkits import SQLDatabaseToolkit
 from sqlalchemy import create_engine
+from ollama_llm import get_llm
 import sqlite3
 
 st.set_page_config(page_title="LangChain: Chat with SQL DB", page_icon="🦜")
@@ -29,23 +29,23 @@ if radio_opt.index(selected_opt) == 1:
 else:
     db_uri = LOCALDB
 
-openai_api_key = st.sidebar.text_input(
-    label="OpenAI API Key",
-    type="password",
-)
+# openai_api_key = st.sidebar.text_input(
+#     label="OpenAI API Key",
+#     type="password",
+# )
 
 # Check user inputs
 if not db_uri:
     st.info("Please enter database URI to connect to your database.")
     st.stop()
 
-if not openai_api_key:
-    st.info("Please add your OpenAI API key to continue.")
-    st.stop()
+# if not openai_api_key:
+#     st.info("Please add your OpenAI API key to continue.")
+#     st.stop()
 
 # Setup agent
-llm = OpenAI(openai_api_key=openai_api_key, temperature=0, streaming=True)
-
+# llm = OpenAI(openai_api_key=openai_api_key, temperature=0, streaming=True)
+llm = get_llm()
 
 @st.cache_resource(ttl="2h")
 def configure_db(db_uri):
@@ -67,6 +67,7 @@ agent = create_sql_agent(
     toolkit=toolkit,
     verbose=True,
     agent_type=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
+    handle_parsing_errors=True,
 )
 
 if "messages" not in st.session_state or st.sidebar.button("Clear message history"):
@@ -82,7 +83,7 @@ if user_query:
     st.chat_message("user").write(user_query)
 
     with st.chat_message("assistant"):
-        st_cb = StreamlitCallbackHandler(st.container())
+        st_cb = StreamlitCallbackHandler(st.container(),)
         response = agent.run(user_query, callbacks=[st_cb])
         st.session_state.messages.append({"role": "assistant", "content": response})
         st.write(response)
